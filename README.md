@@ -4,6 +4,7 @@ Aplicación web completa para gestión de finanzas personales con Next.js, React
 
 ## 🚀 Características
 
+- ✅ **Autenticación** con registro e inicio de sesión
 - ✅ **Dashboard** con KPIs principales
 - ✅ **Transacciones** con filtros avanzados
 - ✅ **Tarjetas de Crédito** con control de límites
@@ -28,7 +29,7 @@ Aplicación web completa para gestión de finanzas personales con Next.js, React
 ```bash
 npm install
 npx prisma generate
-npx prisma db push
+npx prisma migrate deploy  # Aplica las migraciones incluyendo el campo password
 npm run dev
 ```
 
@@ -38,6 +39,31 @@ npm run dev
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="your-secret-key"
 NEXTAUTH_URL="https://your-domain.com"
+```
+
+## 🔑 API de Autenticación
+
+### Registro de Usuario
+```bash
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "name": "Nombre Usuario",
+  "password": "contraseña123"
+}
+```
+
+### Inicio de Sesión
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123"
+}
 ```
 
 ## 🚀 Deploy en Vercel
