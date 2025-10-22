@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth-helpers';
 import { z } from 'zod';
 
 const accountSchema = z.object({
@@ -9,24 +10,15 @@ const accountSchema = z.object({
   balance: z.string().or(z.number()).optional(),
 });
 
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
-
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const data = accountSchema.parse(body);
-    const user = await getOrCreateUser();
 
     const account = await prisma.account.create({
       data: {
@@ -47,7 +39,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(_request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
     const accounts = await prisma.account.findMany({
       where: { userId: user.id },

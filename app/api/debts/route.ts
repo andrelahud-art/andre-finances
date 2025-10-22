@@ -11,18 +11,7 @@ const debtSchema = z.object({
   accountId: z.string(),
 });
 
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 function buildFrenchSchedule(
   principal: number,
@@ -55,9 +44,13 @@ function buildFrenchSchedule(
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const data = debtSchema.parse(body);
-    const user = await getOrCreateUser();
 
     const debt = await prisma.debt.create({
       data: {
@@ -107,7 +100,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(_request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
     const debts = await prisma.debt.findMany({
       where: { userId: user.id },

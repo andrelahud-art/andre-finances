@@ -1,42 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(_request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
-    const schedules = await prisma.debtSchedule.findMany({
+    // Get recurring rules for the calendar
+    const recurringRules = await prisma.recurringRule.findMany({
       where: {
-        debt: {
-          userId: user.id,
-        },
+        userId: user.id,
+        isActive: true,
       },
-      include: {
-        debt: {
-          select: {
-            id: true,
-            name: true,
-            principal: true,
-          },
-        },
-      },
-      orderBy: { dueDate: 'asc' },
+      orderBy: { startDate: 'asc' },
     });
 
-    return NextResponse.json(schedules);
+    return NextResponse.json(recurringRules);
   } catch (error) {
     console.error('Error fetching payment calendar:', error);
     return NextResponse.json({ error: 'Failed to fetch payment calendar' }, { status: 400 });

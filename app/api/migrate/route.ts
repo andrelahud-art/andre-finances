@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
     let user = await prisma.user.findUnique({
       where: { email: 'andre@finances.com' },
     });
+  });
     if (!user) {
       user = await prisma.user.create({
         data: {
