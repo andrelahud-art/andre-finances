@@ -7,13 +7,6 @@ export async function POST(request: NextRequest) {
     const { email, password } = await request.json();
     const supabase = await createClient();
 
-    // Buscar usuario en la base de datos
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    // Si no existe el usuario o la contraseña no coincide
-    if (!user || user.password !== password) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -27,12 +20,6 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name || 'Usuario'
-      }
       user: data.user,
       session: data.session,
     });
