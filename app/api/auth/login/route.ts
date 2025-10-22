@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
+    const supabase = await createClient();
 
     // Buscar usuario en la base de datos
     const user = await prisma.user.findUnique({
@@ -12,14 +14,17 @@ export async function POST(request: NextRequest) {
 
     // Si no existe el usuario o la contraseña no coincide
     if (!user || user.password !== password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
       return NextResponse.json(
         { error: 'Credenciales inválidas' },
         { status: 401 }
       );
     }
-
-    // Generar token simple (en producción usar JWT)
-    const token = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     return NextResponse.json({
       token,
@@ -28,6 +33,8 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name || 'Usuario'
       }
+      user: data.user,
+      session: data.session,
     });
   } catch (error) {
     console.error('Login error:', error);
