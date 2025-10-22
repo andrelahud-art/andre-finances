@@ -1,0 +1,213 @@
+// Prisma Schema para André Finance
+// Database: PostgreSQL (Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
+}
+
+// ============= USUARIO =============
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  password      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  accounts      Account[]
+  transactions  Transaction[]
+  categories    Category[]
+  debts         Debt[]
+  assets        Asset[]
+  budgets       Budget[]
+  recurringRules RecurringRule[]
+  goals         Goal[]
+  creditCards   CreditCard[]
+}
+
+// ============= CUENTAS =============
+model Account {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String   // CASH|BANK|WALLET
+  currency  String   @default("MXN")
+  balance   Decimal  @default(0) @db.Decimal(15, 2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+// ============= TARJETAS DE CRÉDITO =============
+model CreditCard {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  creditLimit   Decimal  @db.Decimal(15, 2)
+  currentBalance Decimal @default(0) @db.Decimal(15, 2)
+  cutoffDay     Int
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+// ============= CATEGORÍAS =============
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String   // INCOME|EXPENSE
+  color     String?
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@index([userId])
+}
+
+// ============= TRANSACCIONES =============
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime
+  amount        Decimal  @db.Decimal(15, 2)
+  type          String   // INCOME|EXPENSE|PAYMENT
+  accountId     String?
+  creditCardId  String?
+  categoryId    String?
+  merchant      String?
+  note          String?
+  isInvestment  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account      Account?     @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  creditCard   CreditCard?  @relation(fields: [creditCardId], references: [id], onDelete: SetNull)
+  category     Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([creditCardId])
+  @@index([categoryId])
+  @@index([date])
+  @@index([type])
+}
+
+// ============= DEUDAS A LARGO PLAZO =============
+model Debt {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  type            String   // LOAN|MORTGAGE|FINANCING|OTHER
+  currentBalance  Decimal  @db.Decimal(15, 2)
+  originalAmount  Decimal  @db.Decimal(15, 2)
+  interestRate    Decimal? @db.Decimal(6, 4)
+  monthlyPayment  Decimal  @db.Decimal(15, 2)
+  remainingMonths Int
+  startDate       DateTime
+  description     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============= ACTIVOS =============
+model Asset {
+  id             String   @id @default(cuid())
+  userId         String
+  name           String
+  type           String   // VEHICLE|EQUIPMENT|PROPERTY|OTHER
+  originalCost   Decimal  @db.Decimal(15, 2)
+  currentValue   Decimal  @db.Decimal(15, 2)
+  purchaseDate   DateTime
+  usefulLife     Int?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+// ============= PRESUPUESTOS =============
+model Budget {
+  id           String   @id @default(cuid())
+  userId       String
+  categoryId   String
+  monthlyLimit Decimal  @db.Decimal(15, 2)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([categoryId])
+}
+
+// ============= REGLAS RECURRENTES (CALENDARIO DE PAGOS) =============
+model RecurringRule {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  amount      Decimal  @db.Decimal(15, 2)
+  type        String   // INCOME|EXPENSE
+  frequency   String   // DAILY|WEEKLY|MONTHLY|CUSTOM
+  recurrenceType String // INDEFINITE|DEFINED|ONCE
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// ============= METAS =============
+model Goal {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  targetAmount Decimal  @db.Decimal(15, 2)
+  targetDate   DateTime
+  isActive     Boolean  @default(true)
+  achievedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}

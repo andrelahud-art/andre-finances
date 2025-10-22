@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migración de Datos - André Finances</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+            display: none;
+        }
+        .log.active {
+            display: block;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .info {
+            color: #00aaff;
+        }
+        .warning {
+            color: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Migración de Datos a Supabase</h1>
+        <p class="subtitle">Este script migrará todos tus datos de localStorage a la base de datos PostgreSQL en Supabase</p>
+        
+        <div class="step">
+            <strong>📋 Paso 1:</strong> Asegúrate de estar en la página principal de André Finances (https://andre-finances.lindy.site/dashboard)
+        </div>
+        
+        <div class="step">
+            <strong>🔍 Paso 2:</strong> Haz clic en "Exportar Datos" para ver qué datos se migrarán
+        </div>
+        
+        <div class="step">
+            <strong>☁️ Paso 3:</strong> Haz clic en "Migrar a Supabase" para enviar los datos a la base de datos
+        </div>
+
+        <button id="exportBtn" onclick="exportData()">📦 Exportar Datos de localStorage</button>
+        <button id="migrateBtn" onclick="migrateData()" disabled>☁️ Migrar a Supabase</button>
+        <button id="verifyBtn" onclick="verifyMigration()" disabled style="background: #28a745;">✅ Verificar Migración</button>
+
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        let exportedData = null;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            logDiv.classList.add('active');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div class="${type}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function exportData() {
+            log('🔍 Iniciando exportación de datos...', 'info');
+            
+            try {
+                // Leer datos de localStorage
+                const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
+                const creditCards = JSON.parse(localStorage.getItem('creditCards') || '[]');
+                const categories = JSON.parse(localStorage.getItem('categories') || '[]');
+                const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+                const debts = JSON.parse(localStorage.getItem('longTermDebts') || '[]');
+                const assets = JSON.parse(localStorage.getItem('assets') || '[]');
+                const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
+                const recurringRules = JSON.parse(localStorage.getItem('calendarPayments') || '[]');
+
+                exportedData = {
+                    accounts,
+                    creditCards,
+                    categories,
+                    transactions,
+                    debts,
+                    assets,
+                    budgets,
+                    recurringRules
+                };
+
+                log(`✅ Cuentas: ${accounts.length}`, 'success');
+                log(`✅ Tarjetas de Crédito: ${creditCards.length}`, 'success');
+                log(`✅ Categorías: ${categories.length}`, 'success');
+                log(`✅ Transacciones: ${transactions.length}`, 'success');
+                log(`✅ Deudas L.P.: ${debts.length}`, 'success');
+                log(`✅ Activos: ${assets.length}`, 'success');
+                log(`✅ Presupuestos: ${budgets.length}`, 'success');
+                log(`✅ Pagos Recurrentes: ${recurringRules.length}`, 'success');
+                
+                const totalItems = accounts.length + creditCards.length + categories.length + 
+                                 transactions.length + debts.length + assets.length + 
+                                 budgets.length + recurringRules.length;
+                
+                log(`📊 Total de registros a migrar: ${totalItems}`, 'info');
+                
+                if (totalItems > 0) {
+                    document.getElementById('migrateBtn').disabled = false;
+                    log('✅ Datos exportados correctamente. Ahora puedes hacer clic en "Migrar a Supabase"', 'success');
+                } else {
+                    log('⚠️ No se encontraron datos para migrar', 'warning');
+                }
+
+            } catch (error) {
+                log(`❌ Error al exportar datos: ${error.message}`, 'error');
+            }
+        }
+
+        async function migrateData() {
+            if (!exportedData) {
+                log('❌ Primero debes exportar los datos', 'error');
+                return;
+            }
+
+            log('☁️ Iniciando migración a Supabase...', 'info');
+            document.getElementById('migrateBtn').disabled = true;
+            document.getElementById('migrateBtn').textContent = '⏳ Migrando...';
+
+            try {
+                const response = await fetch('/api/migrate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(exportedData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    log('🎉 ¡Migración completada exitosamente!', 'success');
+                    log(`✅ Usuario ID: ${result.userId}`, 'success');
+                    log('✅ Todos los datos han sido guardados en Supabase', 'success');
+                    document.getElementById('verifyBtn').disabled = false;
+                    document.getElementById('migrateBtn').textContent = '✅ Migración Completada';
+                } else {
+                    log(`❌ Error en la migración: ${result.error}`, 'error');
+                    document.getElementById('migrateBtn').disabled = false;
+                    document.getElementById('migrateBtn').textContent = '☁️ Reintentar Migración';
+                }
+
+            } catch (error) {
+                log(`❌ Error al conectar con el servidor: ${error.message}`, 'error');
+                document.getElementById('migrateBtn').disabled = false;
+                document.getElementById('migrateBtn').textContent = '☁️ Reintentar Migración';
+            }
+        }
+
+        async function verifyMigration() {
+            log('🔍 Verificando migración...', 'info');
+            log('✅ Para verificar, ve a tu dashboard de Supabase:', 'info');
+            log('   https://supabase.com/dashboard/project/jdkrtnrhcyjtmbwtatsc/editor', 'info');
+            log('✅ Deberías ver todas las tablas con datos', 'success');
+            window.open('https://supabase.com/dashboard/project/jdkrtnrhcyjtmbwtatsc/editor', '_blank');
+        }
+    </script>
+</body>
+</html>

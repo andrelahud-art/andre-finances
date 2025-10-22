@@ -1,0 +1,76 @@
+🚀 INSTRUCCIONES PARA SUBIR ARCHIVOS A GITHUB
+
+PASO 1: Descargar el archivo comprimido
+========================================
+El archivo "andre-finances.tar.gz" contiene todo el código de tu app.
+
+Ubicación: /home/code/andre-finances/andre-finances.tar.gz
+Tamaño: 185KB
+
+PASO 2: Subir a GitHub
+======================
+1. Ve a: https://github.com/andrelahud-art/andre-financies
+2. Haz clic en "uploading an existing file"
+3. Arrastra el archivo "andre-finances.tar.gz" 
+4. O mejor aún, sube los archivos individuales:
+
+ARCHIVOS CLAVE A SUBIR:
+- app/ (carpeta completa con todos los componentes)
+- components/ (carpeta completa)
+- lib/ (carpeta completa)
+- prisma/ (carpeta completa con schema.prisma)
+- public/ (carpeta completa)
+- package.json
+- next.config.ts
+- tsconfig.json
+- tailwind.config.ts
+- .env.example
+- .gitignore
+- vercel.json
+- README.md
+
+PASO 3: Hacer commit
+====================
+Mensaje sugerido: "Add complete finance app with Supabase integration"
+
+PASO 4: Vercel hará deploy automático
+======================================
+Una vez que subas los archivos, Vercel detectará los cambios y hará deploy automáticamente.
+Espera 2-3 minutos.
+
+PASO 5: Ejecutar migración de datos
+====================================
+Una vez que el deploy termine:
+
+1. Ve a: https://andre-finances.lindy.site/dashboard
+2. Abre la consola del navegador (F12)
+3. Pega este código y presiona Enter:
+
+// SCRIPT DE MIGRACIÓN
+(async function() {
+  console.log('🚀 Iniciando migración...');
+  
+  const data = {
+    accounts: JSON.parse(localStorage.getItem('accounts') || '[]'),
+    creditCards: JSON.parse(localStorage.getItem('creditCards') || '[]'),
+    categories: JSON.parse(localStorage.getItem('categories') || '[]'),
+    transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
+    debts: JSON.parse(localStorage.getItem('longTermDebts') || '[]'),
+    assets: JSON.parse(localStorage.getItem('assets') || '[]'),
+    budgets: JSON.parse(localStorage.getItem('budgets') || '[]'),
+    recurringRules: JSON.parse(localStorage.getItem('calendarPayments') || '[]')
+  };
+  
+  console.log('📊 Datos a migrar:', data);
+  
+  const response = await fetch('/api/migrate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  
+  const result = await response.json();
+  console.log('✅ Resultado:', result);
+})();
+
+¡LISTO! Tus datos estarán en Supabase 🎉
