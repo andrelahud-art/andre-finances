@@ -1,8 +1,73 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Calendar, TrendingUp, TrendingDown, AlertCircle, DollarSign, CreditCard, Package, FileText, Settings, Plus, Upload, X, ChevronDown, ChevronRight, Download, Search, Filter, Edit2, Trash2, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Calendar, TrendingUp, TrendingDown, DollarSign, CreditCard, Package, FileText, Settings, Plus, X, ChevronDown, ChevronRight, Download, Search, Edit2, Trash2, Save, AlertTriangle } from 'lucide-react';
+
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  balance: number;
+  currency: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  kind: string;
+  parentId: string | null;
+}
+
+interface Transaction {
+  id: string;
+  date: string;
+  amount: number;
+  type: string;
+  accountId: string;
+  categoryId: string;
+  note: string;
+  tags: string[];
+  source: string;
+  merchant: string;
+}
+
+interface Debt {
+  id: string;
+  name: string;
+  principal: number;
+  rateAnnual: number;
+  startDate: string;
+  termMonths: number;
+  accountId: string;
+}
+
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  cost: number;
+  currentValue: number;
+  usefulLife: number;
+  purchaseDate: string;
+}
+
+interface Budget {
+  id: string;
+  categoryId: string;
+  monthlyLimit: number;
+  name: string;
+}
+
+interface MonthlyPL {
+  income: number;
+  expenses: number;
+}
+
+interface CategoryExpense {
+  name: string;
+  total: number;
+}
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-MX', {
@@ -139,7 +204,7 @@ export default function AndreFinanceApp() {
   const [showAddAsset, setShowAddAsset] = useState(false);
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<string | null>(null);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
@@ -216,7 +281,7 @@ export default function AndreFinanceApp() {
   }, [budgets, transactions]);
 
   const plByMonth = useMemo(() => {
-    const months: any = {};
+    const months: Record<string, MonthlyPL> = {};
     transactions.forEach(t => {
       const month = t.date.substring(0, 7);
       if (!months[month]) months[month] = { income: 0, expenses: 0 };
@@ -238,7 +303,7 @@ export default function AndreFinanceApp() {
 
   const expensesByCategory = useMemo(() => {
     const currentMonth = new Date().toISOString().substring(0, 7);
-    const byCategory: any = {};
+    const byCategory: Record<string, number> = {};
     transactions
       .filter(t => t.type === 'EXPENSE' && t.date.startsWith(currentMonth))
       .forEach(t => {
@@ -274,12 +339,18 @@ export default function AndreFinanceApp() {
     return filtered;
   }, [transactions, searchTerm, dateFilter]);
 
-  const addTransaction = useCallback((txData: any) => {
-    const newTx = {
+  const addTransaction = useCallback((txData: Partial<Transaction>) => {
+    const newTx: Transaction = {
       id: `t${Date.now()}`,
-      ...txData,
+      date: txData.date || new Date().toISOString().split('T')[0],
+      amount: txData.amount || 0,
+      type: txData.type || 'EXPENSE',
+      accountId: txData.accountId || '',
+      categoryId: txData.categoryId || '',
+      note: txData.note || '',
       tags: txData.tags || [],
-      source: 'manual'
+      source: 'manual',
+      merchant: txData.merchant || ''
     };
     setTransactions(prev => [newTx, ...prev]);
     
@@ -287,7 +358,7 @@ export default function AndreFinanceApp() {
     if (account) {
       setAccounts(prev => prev.map(a => 
         a.id === txData.accountId 
-          ? { ...a, balance: a.balance + txData.amount }
+          ? { ...a, balance: a.balance + (txData.amount || 0) }
           : a
       ));
     }
@@ -315,27 +386,39 @@ export default function AndreFinanceApp() {
     }
   }, []);
 
-  const addDebt = useCallback((debtData: any) => {
-    const newDebt = {
+  const addDebt = useCallback((debtData: Partial<Debt>) => {
+    const newDebt: Debt = {
       id: `d${Date.now()}`,
-      ...debtData
+      name: debtData.name || '',
+      principal: debtData.principal || 0,
+      rateAnnual: debtData.rateAnnual || 0,
+      startDate: debtData.startDate || new Date().toISOString().split('T')[0],
+      termMonths: debtData.termMonths || 12,
+      accountId: debtData.accountId || ''
     };
     setDebts(prev => [...prev, newDebt]);
   }, []);
 
-  const addAsset = useCallback((assetData: any) => {
-    const newAsset = {
+  const addAsset = useCallback((assetData: Partial<Asset>) => {
+    const newAsset: Asset = {
       id: `a${Date.now()}`,
-      ...assetData
+      name: assetData.name || '',
+      type: assetData.type || 'OTHER',
+      cost: assetData.cost || 0,
+      currentValue: assetData.currentValue || 0,
+      usefulLife: assetData.usefulLife || 12,
+      purchaseDate: assetData.purchaseDate || new Date().toISOString().split('T')[0]
     };
     setAssets(prev => [...prev, newAsset]);
   }, []);
 
-  const addAccount = useCallback((accountData: any) => {
-    const newAccount = {
+  const addAccount = useCallback((accountData: Partial<Account>) => {
+    const newAccount: Account = {
       id: `acc${Date.now()}`,
-      ...accountData,
-      currency: 'MXN'
+      name: accountData.name || '',
+      type: accountData.type || 'BANK',
+      balance: accountData.balance || 0,
+      currency: accountData.currency || 'MXN'
     };
     setAccounts(prev => [...prev, newAccount]);
   }, []);
@@ -867,7 +950,7 @@ export default function AndreFinanceApp() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value: any) => formatCurrency(value)} />
+              <Tooltip formatter={(value: number | string) => formatCurrency(Number(value))} />
               <Legend />
               <Bar dataKey="income" fill="#10b981" name="Ingresos" />
               <Bar dataKey="expenses" fill="#ef4444" name="Gastos" />
@@ -894,7 +977,7 @@ export default function AndreFinanceApp() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: any) => formatCurrency(value)} />
+              <Tooltip formatter={(value: number | string) => formatCurrency(Number(value))} />
             </PieChart>
           </ResponsiveContainer>
         </div>
