@@ -26,13 +26,39 @@ const debtSchema = z.object({
 
 type DebtForm = z.infer<typeof debtSchema>;
 
+interface Debt {
+  id: string;
+  name: string;
+  type: string;
+  currentBalance: number;
+  monthlyPayment: number;
+  remainingMonths: number;
+  interestRate?: number;
+  startDate: string;
+  schedules?: Array<{ dueDate: string; amount: number; isPaid: boolean }>;
+}
+
+interface Account {
+  id: string;
+  name: string;
+  balance: number;
+}
+
+interface DebtSchedule {
+  id: string;
+  debtId: string;
+  dueDate: string;
+  amount: number;
+  isPaid: boolean;
+}
+
 export default function DebtsPage() {
-  const [debts, setDebts] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [selectedDebt, setSelectedDebt] = useState<any>(null);
-  const [schedule, setSchedule] = useState<any[]>([]);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [schedule, setSchedule] = useState<DebtSchedule[]>([]);
 
   const form = useForm<DebtForm>({
     resolver: zodResolver(debtSchema),

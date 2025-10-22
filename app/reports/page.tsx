@@ -8,9 +8,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download } from 'lucide-react';
 
+interface PnLData {
+  totalIncome: number;
+  totalExpenses: number;
+  netProfit: number;
+  categoryBreakdown: Array<{ category: string; amount: number }>;
+}
+
+interface CashFlowData {
+  date: string;
+  inflow: number;
+  outflow: number;
+  balance: number;
+}
+
 export default function ReportsPage() {
-  const [pnlData, setPnlData] = useState<any>(null);
-  const [cashFlowData, setCashFlowData] = useState<any[]>([]);
+  const [pnlData, setPnlData] = useState<PnLData | null>(null);
+  const [cashFlowData, setCashFlowData] = useState<CashFlowData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

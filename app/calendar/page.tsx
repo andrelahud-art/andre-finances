@@ -7,11 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { format, addDays, startOfMonth, endOfMonth } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format, addDays } from 'date-fns';
+
+interface DebtSchedule {
+  id: string;
+  dueDate: string;
+  amount: number;
+  isPaid: boolean;
+  debt: {
+    name: string;
+  };
+}
 
 export default function CalendarPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<DebtSchedule[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -26,10 +26,33 @@ const transactionSchema = z.object({
 
 type TransactionForm = z.infer<typeof transactionSchema>;
 
+interface Transaction {
+  id: string;
+  date: string;
+  amount: number;
+  type: string;
+  merchant?: string;
+  note?: string;
+  account?: { name: string };
+  category?: { name: string };
+}
+
+interface Account {
+  id: string;
+  name: string;
+  balance: number;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 

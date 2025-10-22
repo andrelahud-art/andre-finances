@@ -10,9 +10,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  originalCost: number;
+  currentValue: number;
+  purchaseDate: string;
+  usefulLife?: number;
+  isActive: boolean;
+}
+
+interface InventoryItem {
+  id: string;
+  sku: string;
+  name: string;
+  quantity: number;
+  unitCost: number;
+  valuationMethod: string;
+}
+
 export default function AssetsPage() {
-  const [assets, setAssets] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

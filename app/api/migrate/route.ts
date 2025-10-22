@@ -9,7 +9,7 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json().catch(() => ({}));
+    await request.json().catch(() => ({}));
 
     // Create or get user
     let user = await prisma.user.findUnique({
@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, userId: user.id });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { ok: false, error: String(err?.message || err) },
+      { ok: false, error: errorMessage },
       { status: 500 }
     );
   }
