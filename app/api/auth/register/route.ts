@@ -48,16 +48,10 @@ export async function POST(request: NextRequest) {
       },
     }, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      );
-    }
     console.error('Register error:', error);
     return NextResponse.json(
-      { error: 'Error en el servidor' },
-      { status: 500 }
+      { error: 'Error al registrar usuario' },
+      { status: 400 }
     );
   }
 }
