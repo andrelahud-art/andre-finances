@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || new Date().toISOString().slice(0, 7);
 
@@ -43,11 +34,13 @@ export async function GET(request: NextRequest) {
 
     transactions.forEach((tx) => {
       const amount = Number(tx.amount);
-      if (tx.category?.kind === 'INCOME') income += amount;
-      else if (tx.category?.kind === 'COGS') cogs += amount;
-      else if (tx.category?.kind === 'OPEX') opex += amount;
-      else if (tx.category?.kind === 'INTEREST') interest += amount;
-      else if (tx.category?.kind === 'TAX') tax += amount;
+      if (tx.type === 'INCOME') income += amount;
+      else if (tx.type === 'EXPENSE') {
+        // Categorize expenses
+        if (tx.category?.type === 'EXPENSE') {
+          opex += Math.abs(amount);
+        }
+      }
     });
 
     const netIncome = income - cogs - opex - interest - tax;

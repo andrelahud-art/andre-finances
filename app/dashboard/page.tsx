@@ -57,17 +57,30 @@ export default function DashboardPage() {
 
   // Check authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (!token || !userData) {
-      router.push('/');
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        const { getUser } = await import('@/lib/auth');
+        const user = await getUser();
+        
+        if (!user) {
+          router.push('/');
+          return;
+        }
 
-    setUser(JSON.parse(userData));
-    loadData();
-    setLoading(false);
+        setUser({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.name || user.email?.split('@')[0]
+        });
+        loadData();
+        setLoading(false);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        router.push('/');
+      }
+    };
+
+    checkAuth();
   }, [router]);
 
   const loadData = async () => {
@@ -96,10 +109,15 @@ export default function DashboardPage() {
     localStorage.setItem(key, JSON.stringify(data));
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+      const { logout } = await import('@/lib/auth');
+      await logout();
+      router.push('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      router.push('/');
+    }
   };
 
   // ==================== ACCOUNTS ====================

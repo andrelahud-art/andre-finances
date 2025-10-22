@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getCurrentUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
     const assets = await prisma.asset.findMany({
       where: {
@@ -34,7 +25,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const asset = await prisma.asset.create({
@@ -43,10 +38,9 @@ export async function POST(request: NextRequest) {
         name: body.name,
         type: body.type,
         purchaseDate: new Date(body.purchaseDate),
-        purchasePrice: parseFloat(body.purchasePrice),
-        depreciationMethod: body.depreciationMethod || 'STRAIGHT_LINE',
-        usefulLife: parseInt(body.usefulLife) || 5,
-        salvageValue: parseFloat(body.salvageValue) || 0,
+        originalCost: parseFloat(body.originalCost || body.purchasePrice),
+        currentValue: parseFloat(body.currentValue || body.originalCost || body.purchasePrice),
+        usefulLife: body.usefulLife ? parseInt(body.usefulLife) : null,
       },
     });
 

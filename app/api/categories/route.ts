@@ -1,35 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth-helpers';
 import { z } from 'zod';
 
 const categorySchema = z.object({
   name: z.string(),
-  kind: z.enum(['INCOME', 'COGS', 'OPEX', 'TAX', 'INTEREST', 'TRANSFER']),
+  type: z.string(),
+  color: z.string().optional(),
+  icon: z.string().optional(),
 });
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const data = categorySchema.parse(body);
-    const user = await getOrCreateUser();
 
     const category = await prisma.category.create({
       data: {
         name: data.name,
-        kind: data.kind,
+        type: data.type,
+        color: data.color,
+        icon: data.icon,
         userId: user.id,
       },
     });
@@ -43,7 +39,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
 
     const categories = await prisma.category.findMany({
       where: { userId: user.id },
