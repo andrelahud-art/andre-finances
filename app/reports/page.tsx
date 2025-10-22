@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -206,7 +207,7 @@ export default function ReportsPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

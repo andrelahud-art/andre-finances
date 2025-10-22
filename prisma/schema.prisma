@@ -1,5 +1,5 @@
 // Prisma Schema para André Finance
-// Database: PostgreSQL (Supabase)
+// Database: PostgreSQL (Local)
 
 generator client {
   provider = "prisma-client-js"
@@ -8,7 +8,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
 }
 
 // ============= USUARIO =============
@@ -29,6 +28,7 @@ model User {
   recurringRules RecurringRule[]
   goals         Goal[]
   creditCards   CreditCard[]
+  inventoryItems InventoryItem[]
 }
 
 // ============= CUENTAS =============
@@ -77,6 +77,9 @@ model Category {
   icon      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Campo adicional para compatibilidad con APIs
+  kind      String?  // Alias para type con valores extendidos
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
@@ -130,8 +133,14 @@ model Debt {
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  
+  // Campos adicionales para compatibilidad con APIs
+  principal       Decimal? @db.Decimal(15, 2) // Alias para currentBalance
+  rateAnnual      Decimal? @db.Decimal(6, 4)  // Alias para interestRate
+  termMonths      Int?                         // Alias para remainingMonths
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules DebtSchedule[]
 
   @@index([userId])
 }
@@ -210,4 +219,44 @@ model Goal {
 
   @@index([userId])
   @@index([isActive])
+}
+
+// ============= INVENTARIO =============
+model InventoryItem {
+  id               String   @id @default(cuid())
+  userId           String
+  name             String
+  sku              String?
+  quantity         Int      @default(0)
+  costAverage      Decimal  @db.Decimal(15, 2)
+  valuationMethod  String   @default("AVERAGE") // AVERAGE|FIFO|LIFO
+  type             String   @default("PRODUCT") // PRODUCT|MATERIAL|SERVICE
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sku])
+}
+
+// ============= CRONOGRAMA DE DEUDAS =============
+model DebtSchedule {
+  id           String   @id @default(cuid())
+  debtId       String
+  dueDate      DateTime
+  principalDue Decimal  @db.Decimal(15, 2)
+  interestDue  Decimal  @db.Decimal(15, 2)
+  totalDue     Decimal  @db.Decimal(15, 2)
+  status       String   @default("PENDING") // PENDING|PAID|OVERDUE
+  paidDate     DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  debt Debt @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@index([debtId])
+  @@index([dueDate])
+  @@index([status])
 }

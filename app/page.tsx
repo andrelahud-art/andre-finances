@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/auth';
 import { Lock, User, AlertCircle } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/dashboard');
-    } catch (err) {
+    } catch {
       setError('Usuario o contraseña incorrectos');
     } finally {
       setLoading(false);

@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getOrCreateUser } from '@/lib/api-utils';
 
 export async function GET(request: NextRequest) {
   try {

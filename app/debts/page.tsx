@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, TrendingDown } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { format } from 'date-fns';
+import { Debt, Account, Payment } from '@/types';
 
 const debtSchema = z.object({
   name: z.string(),
@@ -26,12 +28,12 @@ const debtSchema = z.object({
 type DebtForm = z.infer<typeof debtSchema>;
 
 export default function DebtsPage() {
-  const [debts, setDebts] = useState<any[]>([]);
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [selectedDebt, setSelectedDebt] = useState<any>(null);
-  const [schedule, setSchedule] = useState<any[]>([]);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [schedule, setSchedule] = useState<Payment[]>([]);
 
   const form = useForm<DebtForm>({
     resolver: zodResolver(debtSchema),
@@ -345,7 +347,7 @@ export default function DebtsPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

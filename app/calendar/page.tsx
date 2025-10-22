@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { format, addDays, startOfMonth, endOfMonth } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format, addDays } from 'date-fns';
+import { Payment } from '@/types';
 
 export default function CalendarPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -200,7 +201,7 @@ export default function CalendarPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

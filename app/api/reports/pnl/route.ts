@@ -1,18 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
+import { getOrCreateUser } from '@/lib/api-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,11 +31,11 @@ export async function GET(request: NextRequest) {
 
     transactions.forEach((tx) => {
       const amount = Number(tx.amount);
-      if (tx.category?.kind === 'INCOME') income += amount;
-      else if (tx.category?.kind === 'COGS') cogs += amount;
-      else if (tx.category?.kind === 'OPEX') opex += amount;
-      else if (tx.category?.kind === 'INTEREST') interest += amount;
-      else if (tx.category?.kind === 'TAX') tax += amount;
+      if (tx.category?.type === 'INCOME') income += amount;
+      else if (tx.category?.type === 'COGS') cogs += amount;
+      else if (tx.category?.type === 'OPEX') opex += amount;
+      else if (tx.category?.type === 'INTEREST') interest += amount;
+      else if (tx.category?.type === 'TAX') tax += amount;
     });
 
     const netIncome = income - cogs - opex - interest - tax;

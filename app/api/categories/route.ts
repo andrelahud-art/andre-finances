@@ -1,24 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { getOrCreateUser } from '@/lib/api-utils';
 
 const categorySchema = z.object({
   name: z.string(),
   kind: z.enum(['INCOME', 'COGS', 'OPEX', 'TAX', 'INTEREST', 'TRANSFER']),
 });
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +17,7 @@ export async function POST(request: NextRequest) {
     const category = await prisma.category.create({
       data: {
         name: data.name,
-        kind: data.kind,
+        type: data.kind,
         userId: user.id,
       },
     });
@@ -41,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getOrCreateUser();
 

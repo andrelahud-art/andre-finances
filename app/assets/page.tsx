@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,10 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
+import { Asset, InventoryItem } from '@/types';
 
 export default function AssetsPage() {
-  const [assets, setAssets] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +53,7 @@ export default function AssetsPage() {
   }
 
   const totalAssetsValue = assets.reduce((sum, asset) => sum + (Number(asset.currentValue) || 0), 0);
-  const totalCost = assets.reduce((sum, asset) => sum + (Number(asset.cost) || 0), 0);
+  const totalCost = assets.reduce((sum, asset) => sum + (Number(asset.cost) || Number(asset.originalCost) || 0), 0);
   const totalDepreciation = totalCost - totalAssetsValue;
   const totalInventoryValue = inventory.reduce((sum, item) => sum + ((item.quantity || 0) * (Number(item.costAverage) || 0)), 0);
 
@@ -148,7 +150,7 @@ export default function AssetsPage() {
                       </TableHeader>
                       <TableBody>
                         {assets.map((asset) => {
-                          const cost = Number(asset.cost) || 0;
+                          const cost = Number(asset.cost) || Number(asset.originalCost) || 0;
                           const currentValue = Number(asset.currentValue) || 0;
                           const depreciation = cost - currentValue;
                           return (
@@ -161,7 +163,7 @@ export default function AssetsPage() {
                               <TableCell>${cost.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</TableCell>
                               <TableCell className="text-orange-600">-${depreciation.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</TableCell>
                               <TableCell className="font-semibold">${currentValue.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</TableCell>
-                              <TableCell>{Math.ceil((asset.usefulLifeMonths || 60) / 12)} años</TableCell>
+                              <TableCell>{Math.ceil((asset.usefulLifeMonths || asset.usefulLife || 60) / 12)} años</TableCell>
                             </TableRow>
                           );
                         })}
@@ -234,7 +236,7 @@ export default function AssetsPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

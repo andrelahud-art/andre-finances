@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { getOrCreateUser } from '@/lib/api-utils';
 
 const transactionSchema = z.object({
   date: z.string().or(z.date()),
@@ -10,19 +11,6 @@ const transactionSchema = z.object({
   categoryId: z.string().optional(),
   note: z.string().optional(),
 });
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
 
 export async function POST(request: NextRequest) {
   try {

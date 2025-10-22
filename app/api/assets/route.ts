@@ -1,20 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/api-utils';
 
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getOrCreateUser();
 
@@ -43,10 +31,9 @@ export async function POST(request: NextRequest) {
         name: body.name,
         type: body.type,
         purchaseDate: new Date(body.purchaseDate),
-        purchasePrice: parseFloat(body.purchasePrice),
-        depreciationMethod: body.depreciationMethod || 'STRAIGHT_LINE',
+        originalCost: parseFloat(body.purchasePrice),
+        currentValue: parseFloat(body.purchasePrice),
         usefulLife: parseInt(body.usefulLife) || 5,
-        salvageValue: parseFloat(body.salvageValue) || 0,
       },
     });
 

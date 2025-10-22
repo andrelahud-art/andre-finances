@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/api-utils';
 
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getOrCreateUser();
 
-    const schedules = await prisma.debtSchedule.findMany({
+    // TODO: Fix Prisma client recognition of DebtSchedule model
+    const schedules = await (prisma as any).debtSchedule.findMany({
       where: {
         debt: {
           userId: user.id,

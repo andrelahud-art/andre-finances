@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  }
+  },
+  output: "standalone",
+  outputFileTracingRoot: "/Users/andrelahudlira/Desktop/andre-financies-main-2"
 };
 
 export default nextConfig;

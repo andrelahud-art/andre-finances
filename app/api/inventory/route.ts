@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUser } from '@/lib/api-utils';
 
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const user = await getOrCreateUser();
 
-    const inventory = await prisma.inventoryItem.findMany({
+    // TODO: Fix Prisma client recognition of InventoryItem model
+    const inventory = await (prisma as any).inventoryItem.findMany({
       where: {
         userId: user.id,
       },
@@ -37,14 +26,16 @@ export async function POST(request: NextRequest) {
     const user = await getOrCreateUser();
     const body = await request.json();
 
-    const item = await prisma.inventoryItem.create({
+    // TODO: Fix Prisma client recognition of InventoryItem model
+    const item = await (prisma as any).inventoryItem.create({
       data: {
         userId: user.id,
         sku: body.sku,
         name: body.name,
         quantity: parseInt(body.quantity),
-        unitCost: parseFloat(body.unitCost),
-        valuationMethod: body.valuationMethod || 'FIFO',
+        costAverage: parseFloat(body.unitCost),
+        valuationMethod: body.valuationMethod || 'AVERAGE',
+        type: 'PRODUCT',
       },
     });
 
