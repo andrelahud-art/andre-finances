@@ -4,6 +4,7 @@ Aplicación web completa para gestión de finanzas personales con Next.js, React
 
 ## 🚀 Características
 
+- ✅ **Autenticación** con registro e inicio de sesión
 - ✅ **Dashboard** con KPIs principales
 - ✅ **Transacciones** con filtros avanzados
 - ✅ **Tarjetas de Crédito** con control de límites
@@ -39,6 +40,7 @@ cp .env.example .env
 
 # Generar cliente de Prisma
 npx prisma generate
+npx prisma migrate deploy  # Aplica las migraciones incluyendo el campo password
 
 # Crear tablas en la base de datos
 npx prisma db push
@@ -63,6 +65,30 @@ NEXT_PUBLIC_SUPABASE_URL="https://tu-proyecto.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-anon-key"
 ```
 
+## 🔑 API de Autenticación
+
+### Registro de Usuario
+```bash
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "name": "Nombre Usuario",
+  "password": "contraseña123"
+}
+```
+
+### Inicio de Sesión
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña123"
+}
+```
 ## 🔑 Uso
 
 1. Regístrate en `/register` con tu email y contraseña
