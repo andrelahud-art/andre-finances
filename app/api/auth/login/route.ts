@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    // Validar credenciales hardcodeadas
-    if (email !== 'andre' || password !== 'pigopigo') {
+    // Buscar usuario en la base de datos
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Si no existe el usuario o la contraseña no coincide
+    if (!user || user.password !== password) {
       return NextResponse.json(
         { error: 'Credenciales inválidas' },
         { status: 401 }
@@ -18,9 +24,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       token,
       user: {
-        id: 'user_andre',
-        email: 'andre@finance.local',
-        name: 'André'
+        id: user.id,
+        email: user.email,
+        name: user.name || 'Usuario'
       }
     });
   } catch (error) {
