@@ -1,34 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth-helpers';
 import { z } from 'zod';
 
 const transactionSchema = z.object({
   date: z.string().or(z.date()),
   amount: z.number(),
-  type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER', 'ADJUSTMENT']),
-  accountId: z.string(),
+  type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER', 'ADJUSTMENT', 'PAYMENT']),
+  accountId: z.string().optional(),
+  creditCardId: z.string().optional(),
   categoryId: z.string().optional(),
+  merchant: z.string().optional(),
   note: z.string().optional(),
+  isInvestment: z.boolean().optional(),
 });
-
-async function getOrCreateUser() {
-  let user = await prisma.user.findFirst();
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        email: 'demo@example.com',
-        name: 'André',
-      },
-    });
-  }
-  return user;
-}
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const body = await request.json();
     const data = transactionSchema.parse(body);
-    const user = await getOrCreateUser();
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -36,12 +31,16 @@ export async function POST(request: NextRequest) {
         amount: data.amount,
         type: data.type,
         accountId: data.accountId,
+        creditCardId: data.creditCardId,
         categoryId: data.categoryId,
+        merchant: data.merchant,
         note: data.note,
+        isInvestment: data.isInvestment || false,
         userId: user.id,
       },
       include: {
         account: true,
+        creditCard: true,
         category: true,
       },
     });
@@ -55,7 +54,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getOrCreateUser();
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
@@ -66,6 +69,7 @@ export async function GET(request: NextRequest) {
         where: { userId: user.id },
         include: {
           account: true,
+          creditCard: true,
           category: true,
         },
         orderBy: { date: 'desc' },
