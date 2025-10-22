@@ -21,6 +21,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/dashboard');
+    } catch (_err) {
+      setError('Usuario o contraseña incorrectos');
     } catch (err: any) {
       setError(err.message || 'Usuario o contraseña incorrectos');
     } finally {

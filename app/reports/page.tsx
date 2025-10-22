@@ -1,15 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Download } from 'lucide-react';
 
+interface PnLData {
+  totalIncome: number;
+  totalExpenses: number;
+  netProfit: number;
+  categoryBreakdown: Array<{ category: string; amount: number }>;
+}
+
+interface CashFlowData {
+  date: string;
+  inflow: number;
+  outflow: number;
+  balance: number;
+}
+
 export default function ReportsPage() {
-  const [pnlData, setPnlData] = useState<any>(null);
-  const [cashFlowData, setCashFlowData] = useState<any[]>([]);
+  const [pnlData, setPnlData] = useState<PnLData | null>(null);
+  const [cashFlowData, setCashFlowData] = useState<CashFlowData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -206,7 +221,7 @@ export default function ReportsPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

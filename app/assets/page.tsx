@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,9 +10,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  originalCost: number;
+  currentValue: number;
+  purchaseDate: string;
+  usefulLife?: number;
+  isActive: boolean;
+}
+
+interface InventoryItem {
+  id: string;
+  sku: string;
+  name: string;
+  quantity: number;
+  unitCost: number;
+  valuationMethod: string;
+}
+
 export default function AssetsPage() {
-  const [assets, setAssets] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -234,7 +255,7 @@ export default function AssetsPage() {
 
         <div className="mt-8">
           <Button asChild variant="outline">
-            <a href="/">Volver al Dashboard</a>
+            <Link href="/">Volver al Dashboard</Link>
           </Button>
         </div>
       </div>

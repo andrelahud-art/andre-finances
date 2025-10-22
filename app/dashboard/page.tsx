@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, TrendingUp, TrendingDown, AlertCircle, DollarSign, CreditCard, Package, FileText, Settings, Plus, X, ChevronDown, ChevronRight, Download, Search, Filter, Edit2, Trash2, Save, AlertTriangle, CheckCircle, LogOut, Wallet, BarChart3, TrendingUpIcon, Zap, Percent, PieChart, Activity } from 'lucide-react';
+import { Calendar, TrendingUp, AlertCircle, DollarSign, CreditCard, Package, FileText, Plus, X, Search, Filter, Edit2, Trash2, Save, AlertTriangle, LogOut, Wallet, BarChart3, TrendingUpIcon, Zap, Percent, Activity } from 'lucide-react';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-MX', {
@@ -15,21 +15,96 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('es-MX');
 };
 
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  balance: number;
+  currency?: string;
+}
+
+interface CreditCard {
+  id: string;
+  name: string;
+  creditLimit: number;
+  currentBalance: number;
+  cutoffDay: number;
+}
+
+interface Transaction {
+  id: string;
+  date: string;
+  amount: number;
+  type: string;
+  merchant?: string;
+  note?: string;
+  accountId?: string;
+  categoryId?: string;
+  account?: { name: string };
+  category?: { name: string };
+}
+
+interface Budget {
+  id: string;
+  categoryId: string;
+  monthlyLimit: number;
+  category?: { name: string };
+}
+
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  currentValue: number;
+  originalCost: number;
+  purchaseDate: string;
+}
+
+interface Payment {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  type: string;
+  isPaid?: boolean;
+}
+
+interface LongTermDebt {
+  id: string;
+  name: string;
+  currentBalance: number;
+  monthlyPayment: number;
+  remainingMonths: number;
+  interestRate?: number;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  type?: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [currentView, setCurrentView] = useState('dashboard');
-  const [user, setUser] = useState<any>(null);
+  const [_user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // State for all data
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [creditCards, setCreditCards] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [budgets, setBudgets] = useState<any[]>([]);
-  const [assets, setAssets] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
-  const [longTermDebts, setLongTermDebts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [longTermDebts, setLongTermDebts] = useState<LongTermDebt[]>([]);
+  const [categories, _setCategories] = useState<Category[]>([
     { id: 'cat1', name: 'Comida' },
     { id: 'cat2', name: 'Transporte' },
     { id: 'cat3', name: 'Servicios' },
@@ -46,10 +121,10 @@ export default function DashboardPage() {
   const [showAddPayment, setShowAddPayment] = useState(false);
   const [showPayCreditCard, setShowPayCreditCard] = useState(false);
   const [showAddLongTermDebt, setShowAddLongTermDebt] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<any>(null);
-  const [editingAsset, setEditingAsset] = useState<any>(null);
-  const [editingPayment, setEditingPayment] = useState<any>(null);
-  const [editingDebt, setEditingDebt] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [editingDebt, setEditingDebt] = useState<LongTermDebt | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -105,7 +180,7 @@ export default function DashboardPage() {
     }
   };
 
-  const saveData = useCallback((key: string, data: any) => {
+  const saveData = useCallback((key: string, data: unknown) => {
     localStorage.setItem(key, JSON.stringify(data));
   }, []);
 
@@ -121,11 +196,13 @@ export default function DashboardPage() {
   };
 
   // ==================== ACCOUNTS ====================
-  const addAccount = useCallback((accountData: any) => {
-    const newAccount = {
+  const addAccount = useCallback((accountData: Partial<Account>) => {
+    const newAccount: Account = {
       id: `acc${Date.now()}`,
-      ...accountData,
-      createdAt: new Date().toISOString()
+      name: accountData.name || '',
+      type: accountData.type || 'BANK',
+      balance: accountData.balance || 0,
+      currency: accountData.currency || 'MXN'
     };
     const updated = [...accounts, newAccount];
     setAccounts(updated);
@@ -141,11 +218,13 @@ export default function DashboardPage() {
   }, [accounts, saveData]);
 
   // ==================== CREDIT CARDS ====================
-  const addCreditCard = useCallback((cardData: any) => {
-    const newCard = {
+  const addCreditCard = useCallback((cardData: Partial<CreditCard>) => {
+    const newCard: CreditCard = {
       id: `cc${Date.now()}`,
-      ...cardData,
-      createdAt: new Date().toISOString()
+      name: cardData.name || '',
+      creditLimit: cardData.creditLimit || 0,
+      currentBalance: cardData.currentBalance || 0,
+      cutoffDay: cardData.cutoffDay || 1
     };
     const updated = [...creditCards, newCard];
     setCreditCards(updated);
@@ -161,11 +240,16 @@ export default function DashboardPage() {
   }, [creditCards, saveData]);
 
   // ==================== TRANSACTIONS ====================
-  const addTransaction = useCallback((txData: any) => {
-    const newTx = {
+  const addTransaction = useCallback((txData: Partial<Transaction>) => {
+    const newTx: Transaction = {
       id: `t${Date.now()}`,
-      ...txData,
-      createdAt: new Date().toISOString()
+      date: txData.date || new Date().toISOString().split('T')[0],
+      amount: txData.amount || 0,
+      type: txData.type || 'EXPENSE',
+      merchant: txData.merchant,
+      note: txData.note,
+      accountId: txData.accountId,
+      categoryId: txData.categoryId
     };
     const updated = [newTx, ...transactions];
     setTransactions(updated);
@@ -222,12 +306,11 @@ export default function DashboardPage() {
   }, [transactions, accounts, creditCards, saveData]);
 
   // ==================== BUDGETS ====================
-  const addBudget = useCallback((budgetData: any) => {
-    const newBudget = {
+  const addBudget = useCallback((budgetData: Partial<Budget>) => {
+    const newBudget: Budget = {
       id: `b${Date.now()}`,
-      ...budgetData,
-      spent: 0,
-      createdAt: new Date().toISOString()
+      categoryId: budgetData.categoryId || '',
+      monthlyLimit: budgetData.monthlyLimit || 0
     };
     const updated = [...budgets, newBudget];
     setBudgets(updated);
@@ -243,11 +326,14 @@ export default function DashboardPage() {
   }, [budgets, saveData]);
 
   // ==================== ASSETS ====================
-  const addAsset = useCallback((assetData: any) => {
-    const newAsset = {
+  const addAsset = useCallback((assetData: Partial<Asset>) => {
+    const newAsset: Asset = {
       id: `ast${Date.now()}`,
-      ...assetData,
-      createdAt: new Date().toISOString()
+      name: assetData.name || '',
+      type: assetData.type || 'OTHER',
+      currentValue: assetData.currentValue || 0,
+      originalCost: assetData.originalCost || 0,
+      purchaseDate: assetData.purchaseDate || new Date().toISOString().split('T')[0]
     };
     const updated = [...assets, newAsset];
     setAssets(updated);
@@ -263,11 +349,14 @@ export default function DashboardPage() {
   }, [assets, saveData]);
 
   // ==================== PAYMENTS ====================
-  const addPayment = useCallback((paymentData: any) => {
-    const newPayment = {
+  const addPayment = useCallback((paymentData: Partial<Payment>) => {
+    const newPayment: Payment = {
       id: `pay${Date.now()}`,
-      ...paymentData,
-      createdAt: new Date().toISOString()
+      name: paymentData.name || '',
+      amount: paymentData.amount || 0,
+      dueDate: paymentData.dueDate || new Date().toISOString().split('T')[0],
+      type: paymentData.type || 'EXPENSE',
+      isPaid: paymentData.isPaid || false
     };
     const updated = [...payments, newPayment];
     setPayments(updated);
@@ -283,11 +372,14 @@ export default function DashboardPage() {
   }, [payments, saveData]);
 
   // ==================== LONG TERM DEBTS ====================
-  const addLongTermDebt = useCallback((debtData: any) => {
-    const newDebt = {
+  const addLongTermDebt = useCallback((debtData: Partial<LongTermDebt>) => {
+    const newDebt: LongTermDebt = {
       id: `debt${Date.now()}`,
-      ...debtData,
-      createdAt: new Date().toISOString()
+      name: debtData.name || '',
+      currentBalance: debtData.currentBalance || 0,
+      monthlyPayment: debtData.monthlyPayment || 0,
+      remainingMonths: debtData.remainingMonths || 12,
+      interestRate: debtData.interestRate
     };
     const updated = [...longTermDebts, newDebt];
     setLongTermDebts(updated);
@@ -303,7 +395,7 @@ export default function DashboardPage() {
   }, [longTermDebts, saveData]);
 
   // ==================== CREDIT CARD PAYMENT ====================
-  const payCreditCard = useCallback((paymentData: any) => {
+  const payCreditCard = useCallback((paymentData: { fromAccountId: string; creditCardId: string; amount: number }) => {
     // Restar de la cuenta de débito
     const updatedAccounts = accounts.map(a =>
       a.id === paymentData.fromAccountId
