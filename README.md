@@ -1,6 +1,6 @@
 # André Finances - Sistema Integral de Finanzas Personales
 
-Aplicación web completa para gestión de finanzas personales con Next.js, React, Tailwind CSS y PostgreSQL.
+Aplicación web completa para gestión de finanzas personales con Next.js, React, Tailwind CSS, PostgreSQL y Supabase Auth.
 
 ## 🚀 Características
 
@@ -14,37 +14,78 @@ Aplicación web completa para gestión de finanzas personales con Next.js, React
 - ✅ **Calendario de Pagos** recurrentes
 - ✅ **Inversiones** tracking
 - ✅ **Reportes** financieros
+- ✅ **Autenticación de usuarios** con Supabase
+- ✅ **Registro de usuarios**
+- ✅ **Datos aislados por usuario**
 
 ## 🛠️ Tecnologías
 
-- **Frontend**: Next.js 14, React, Tailwind CSS, TypeScript
-- **Base de Datos**: PostgreSQL (Supabase)
+- **Frontend**: Next.js 15, React 19, Tailwind CSS, TypeScript
+- **Base de Datos**: PostgreSQL
 - **ORM**: Prisma
+- **Autenticación**: Supabase Auth
 - **Iconos**: Lucide React
 - **Deploy**: Vercel
 
 ## 📦 Instalación
 
 ```bash
+# Instalar dependencias
 npm install
+
+# Configurar variables de entorno (ver SUPABASE_SETUP.md)
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# Generar cliente de Prisma
 npx prisma generate
+
+# Crear tablas en la base de datos
 npx prisma db push
+
+# Iniciar servidor de desarrollo
 npm run dev
 ```
 
-## 🔐 Variables de Entorno
+## 🔐 Configuración de Autenticación
+
+**Ver [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** para instrucciones detalladas de configuración de Supabase.
+
+### Variables de Entorno Requeridas
 
 ```env
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="your-secret-key"
-NEXTAUTH_URL="https://your-domain.com"
+# Base de datos PostgreSQL
+DATABASE_URL="postgresql://user:password@host:port/database?schema=public"
+DIRECT_URL="postgresql://user:password@host:port/database?schema=public"
+
+# Supabase (solo para autenticación)
+NEXT_PUBLIC_SUPABASE_URL="https://tu-proyecto.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="tu-anon-key"
 ```
+
+## 🔑 Uso
+
+1. Regístrate en `/register` con tu email y contraseña
+2. Inicia sesión en `/`
+3. Accede al dashboard en `/dashboard`
+4. Todos tus datos estarán asociados a tu cuenta de usuario
 
 ## 🚀 Deploy en Vercel
 
 1. Conecta tu repositorio a Vercel
-2. Configura las variables de entorno
+2. Configura las variables de entorno en Vercel
 3. Deploy automático
+
+### Variables de entorno en Vercel
+
+Asegúrate de agregar todas las variables de `.env.example` en la configuración de Vercel.
+
+## 🏗️ Arquitectura
+
+- **Autenticación**: Manejada por Supabase Auth (JWT, cookies, sesiones)
+- **Base de datos**: PostgreSQL con Prisma ORM
+- **Usuarios**: Sincronizados entre Supabase Auth y tabla `User` de Prisma
+- **Datos**: Aislados por `userId`, cada usuario solo ve sus propios datos
 
 ## 📝 Licencia
 
