@@ -27,7 +27,6 @@ model User {
   budgets       Budget[]
   goals         Goal[]
   inventoryItems InventoryItem[]
-  creditCards   CreditCard[]
 }
 
 // ============= CUENTAS =============

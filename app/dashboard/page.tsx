@@ -55,20 +55,13 @@ export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
-  // Check authentication
+  // Load data directly without authentication
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (!token || !userData) {
-      router.push('/');
-      return;
-    }
-
-    setUser(JSON.parse(userData));
+    // Set default user for the session
+    setUser({ id: 'default-user', name: 'Usuario', email: 'usuario@app.com' });
     loadData();
     setLoading(false);
-  }, [router]);
+  }, []);
 
   const loadData = async () => {
     try {
@@ -97,9 +90,8 @@ export default function DashboardPage() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
+    // No logout needed - refresh the page instead
+    window.location.reload();
   };
 
   // ==================== ACCOUNTS ====================
