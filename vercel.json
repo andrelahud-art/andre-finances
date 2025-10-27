@@ -2,5 +2,19 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "env": {
+    "SKIP_AUTH": "true",
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    "DATABASE_URL": "@database-url",
+    "DIRECT_URL": "@direct-url"
+  },
+  "build": {
+    "env": {
+      "SKIP_AUTH": "true",
+      "NEXTAUTH_SECRET": "@nextauth-secret",
+      "DATABASE_URL": "@database-url", 
+      "DIRECT_URL": "@direct-url"
+    }
+  }
 }
