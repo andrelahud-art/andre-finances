@@ -49,3 +49,4 @@ NEXTAUTH_URL="https://your-domain.com"
 ## 📝 Licencia
 
 MIT
+# Force rebuild
