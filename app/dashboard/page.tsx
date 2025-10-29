@@ -65,23 +65,41 @@ export default function DashboardPage() {
 
   const loadData = async () => {
     try {
-      const savedAccounts = localStorage.getItem('accounts') ? JSON.parse(localStorage.getItem('accounts')!) : [];
-      const savedCreditCards = localStorage.getItem('creditCards') ? JSON.parse(localStorage.getItem('creditCards')!) : [];
-      const savedTransactions = localStorage.getItem('transactions') ? JSON.parse(localStorage.getItem('transactions')!) : [];
-      const savedBudgets = localStorage.getItem('budgets') ? JSON.parse(localStorage.getItem('budgets')!) : [];
-      const savedAssets = localStorage.getItem('assets') ? JSON.parse(localStorage.getItem('assets')!) : [];
-      const savedPayments = localStorage.getItem('payments') ? JSON.parse(localStorage.getItem('payments')!) : [];
-      const savedLongTermDebts = localStorage.getItem('longTermDebts') ? JSON.parse(localStorage.getItem('longTermDebts')!) : [];
+      // Load accounts from API
+      const accountsResponse = await fetch('/api/accounts');
+      const accountsData = accountsResponse.ok ? await accountsResponse.json() : [];
+      
+      // Load transactions from API
+      const transactionsResponse = await fetch('/api/transactions');
+      const transactionsData = transactionsResponse.ok ? await transactionsResponse.json() : [];
+      
+      // Load assets from API
+      const assetsResponse = await fetch('/api/assets');
+      const assetsData = assetsResponse.ok ? await assetsResponse.json() : [];
+      
+      // Load other data from localStorage as fallback
+      const savedCreditCards = localStorage?.getItem('creditCards') ? JSON.parse(localStorage.getItem('creditCards')!) : [];
+      const savedBudgets = localStorage?.getItem('budgets') ? JSON.parse(localStorage.getItem('budgets')!) : [];
+      const savedPayments = localStorage?.getItem('payments') ? JSON.parse(localStorage.getItem('payments')!) : [];
+      const savedLongTermDebts = localStorage?.getItem('longTermDebts') ? JSON.parse(localStorage.getItem('longTermDebts')!) : [];
 
-      setAccounts(savedAccounts);
+      setAccounts(accountsData);
       setCreditCards(savedCreditCards);
-      setTransactions(savedTransactions);
+      setTransactions(transactionsData);
       setBudgets(savedBudgets);
-      setAssets(savedAssets);
+      setAssets(assetsData);
       setPayments(savedPayments);
       setLongTermDebts(savedLongTermDebts);
     } catch (error) {
       console.error('Error loading data:', error);
+      // Fallback to empty arrays if API fails
+      setAccounts([]);
+      setCreditCards([]);
+      setTransactions([]);
+      setBudgets([]);
+      setAssets([]);
+      setPayments([]);
+      setLongTermDebts([]);
     }
   };
 
@@ -95,24 +113,44 @@ export default function DashboardPage() {
   };
 
   // ==================== ACCOUNTS ====================
-  const addAccount = useCallback((accountData: any) => {
-    const newAccount = {
-      id: `acc${Date.now()}`,
-      ...accountData,
-      createdAt: new Date().toISOString()
-    };
-    const updated = [...accounts, newAccount];
-    setAccounts(updated);
-    saveData('accounts', updated);
-  }, [accounts, saveData]);
-
-  const deleteAccount = useCallback((id: string) => {
-    if (confirm('¿Eliminar esta cuenta?')) {
-      const updated = accounts.filter(a => a.id !== id);
-      setAccounts(updated);
-      saveData('accounts', updated);
+  const addAccount = useCallback(async (accountData: any) => {
+    try {
+      const response = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(accountData),
+      });
+      
+      if (response.ok) {
+        const newAccount = await response.json();
+        setAccounts(prev => [...prev, newAccount]);
+      } else {
+        console.error('Error creating account');
+      }
+    } catch (error) {
+      console.error('Error creating account:', error);
     }
-  }, [accounts, saveData]);
+  }, []);
+
+  const deleteAccount = useCallback(async (id: string) => {
+    if (confirm('¿Eliminar esta cuenta?')) {
+      try {
+        const response = await fetch(`/api/accounts/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          setAccounts(prev => prev.filter(a => a.id !== id));
+        } else {
+          console.error('Error deleting account');
+        }
+      } catch (error) {
+        console.error('Error deleting account:', error);
+      }
+    }
+  }, []);
 
   // ==================== CREDIT CARDS ====================
   const addCreditCard = useCallback((cardData: any) => {
