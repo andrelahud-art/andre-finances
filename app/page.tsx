@@ -7,7 +7,6 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect directly to dashboard - no authentication required
     router.push('/dashboard');
   }, [router]);
 
@@ -18,7 +17,10 @@ export default function HomePage() {
           <span className="text-2xl font-bold text-white">AF</span>
         </div>
         <h1 className="text-3xl font-bold text-white mb-2">André Finance</h1>
-        <p className="text-slate-400">Redirigiendo al dashboard...</p>
+        <p className="text-slate-400">Cargando...</p>
+        <div className="mt-4">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+        </div>
       </div>
     </div>
   );
