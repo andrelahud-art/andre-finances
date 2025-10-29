@@ -77,11 +77,11 @@ export default function DashboardPage() {
       const assetsResponse = await fetch('/api/assets');
       const assetsData = assetsResponse.ok ? await assetsResponse.json() : [];
       
-      // Load other data from localStorage as fallback
-      const savedCreditCards = localStorage?.getItem('creditCards') ? JSON.parse(localStorage.getItem('creditCards')!) : [];
-      const savedBudgets = localStorage?.getItem('budgets') ? JSON.parse(localStorage.getItem('budgets')!) : [];
-      const savedPayments = localStorage?.getItem('payments') ? JSON.parse(localStorage.getItem('payments')!) : [];
-      const savedLongTermDebts = localStorage?.getItem('longTermDebts') ? JSON.parse(localStorage.getItem('longTermDebts')!) : [];
+      // Load other data from localStorage as fallback (if available)
+      const savedCreditCards = (typeof localStorage !== 'undefined' && localStorage?.getItem('creditCards')) ? JSON.parse(localStorage.getItem('creditCards')!) : [];
+      const savedBudgets = (typeof localStorage !== 'undefined' && localStorage?.getItem('budgets')) ? JSON.parse(localStorage.getItem('budgets')!) : [];
+      const savedPayments = (typeof localStorage !== 'undefined' && localStorage?.getItem('payments')) ? JSON.parse(localStorage.getItem('payments')!) : [];
+      const savedLongTermDebts = (typeof localStorage !== 'undefined' && localStorage?.getItem('longTermDebts')) ? JSON.parse(localStorage.getItem('longTermDebts')!) : [];
 
       setAccounts(accountsData);
       setCreditCards(savedCreditCards);
@@ -104,7 +104,13 @@ export default function DashboardPage() {
   };
 
   const saveData = useCallback((key: string, data: any) => {
-    localStorage.setItem(key, JSON.stringify(data));
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(key, JSON.stringify(data));
+      }
+    } catch (error) {
+      console.warn('localStorage not available:', error);
+    }
   }, []);
 
   const handleLogout = () => {
