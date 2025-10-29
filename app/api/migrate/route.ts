@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         data: {
           email: 'andre@finances.com',
           name: 'André Lahud',
-          password: 'no-password', // No authentication required
+          password: 'no-password',
         },
       });
     }
